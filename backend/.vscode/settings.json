@@ -1,0 +1,26 @@
+{
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "driver": "PostgreSQL",
+            "name": "byte",
+            "group": "byte",
+            "connectString": "postgresql://haki:OiPm70QTl0kMdlp9G7nYbLQ5RRExTEoA@dpg-d3tnchggjchc73fd5iag-a.oregon-postgres.render.com/hakix"
+        },
+        {
+            "pgOptions": {
+                "ssl": {
+                    "rejectUnauthorized": true
+                }
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "driver": "PostgreSQL",
+            "connectString": "postgresql://haki:OiPm70QTl0kMdlp9G7nYbLQ5RRExTEoA@dpg-d3tnchggjchc73fd5iag-a.oregon-postgres.render.com/hakix",
+            "name": "bytecam"
+        }
+    ]
+}

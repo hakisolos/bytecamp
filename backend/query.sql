@@ -10,3 +10,16 @@ CREATE TABLE IF NOT EXISTS users (
     level TEXT DEFAULT 'bronze',
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
+SELECT username,
+    email
+FROM users
+WHERE username = $1
+    AND email = $2
+SELECT username,
+    email,
+    password
+FROM users
+WHERE (
+        username = $1
+        OR email = $1
+    )

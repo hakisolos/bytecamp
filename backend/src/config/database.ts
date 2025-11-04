@@ -3,10 +3,8 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const db = new Pool({
-    connectionString: process.env.CSTRING,
-    ssl: {
-        rejectUnauthorized: false
-    }
+    connectionString: String(process.env.CSTRING),
+    ssl: false
 })
 
 

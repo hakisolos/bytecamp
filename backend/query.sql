@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS users (
     username TEXT NOT NULL UNIQUE,
     email TEXT NOT NULL UNIQUE,
     password TEXT,
+    followers INT DEFAULT 0,
+    following INT DEFAULT 0,
     courses JSONB DEFAULT '[]'::jsonb,
     avatar TEXT DEFAULT 'https://cdn.kord.live/serve/0UheGdj1TJcC.jpg',
     level TEXT DEFAULT 'bronze',

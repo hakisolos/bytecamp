@@ -19,9 +19,12 @@ auth.post('/signup', (req, res) => {
         return res.status(401).json('bad request')
     }
 
+})
 
+auth.get('/test', (req, res) => {
+    res.send('test sucessful')
 })
 
 
-
 export default auth
+

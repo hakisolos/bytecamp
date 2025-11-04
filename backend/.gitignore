@@ -3,4 +3,5 @@ node_modules/
 yarn.lock
 package-lock.json
 bun.lock
-
+bytecam.session.sql
+query.sql

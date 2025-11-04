@@ -21,6 +21,17 @@
             "driver": "PostgreSQL",
             "connectString": "postgresql://haki:OiPm70QTl0kMdlp9G7nYbLQ5RRExTEoA@dpg-d3tnchggjchc73fd5iag-a.oregon-postgres.render.com/hakix",
             "name": "bytecam"
+        },
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "driver": "PostgreSQL",
+            "database": "bytecamp",
+            "username": "haki",
+            "connectString": "ostgresql://haki:hakisolos@localhost:5432/bytecamp",
+            "name": "bytelocal",
+            "group": "dcker"
         }
     ]
 }

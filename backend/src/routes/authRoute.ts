@@ -1,9 +1,9 @@
-import e from "express";
+import e, { response } from "express";
 import dotenv from 'dotenv'
 import db from "../config/database";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-
+import supabase from "../config/supabase";
 import { verifyToken } from "../middlewares/authMiddleware";
 
 dotenv.config()
@@ -49,17 +49,26 @@ auth.post('/login', async (req, res) => {
     const token = jwt.sign({
         id: response.rows[0].username,
         username: response.rows[0].username,
-        email: response.rows[0].email,
-        followers: response.rows[0].followers,
-        following: response.rows[0].following,
-        courses: response.rows[0].courses,
-        avatar: response.rows[0].avatar,
-        level: response.rows[0].level,
-        joined_at: response.rows[0].joined_at
+        email: response.rows[0].email
     }, String(process.env.JWT_SECRET), { expiresIn: "7d" })
     return res.json({ success: false, message: "Login successful", jwt_token: token })
 })
 
+
+
+auth.get('/oauth/callback', async (req, res) => {
+    const { data, error } = await supabase.auth.getUser(
+        req.headers.authorization?.replace("Bearer ", "")
+    )
+    if (error) {
+        res.status(400).json({ success: false, error: error.message })
+    }
+    const response = await db.query('SELECT * FROM users WHERE email = $1', [data.user?.email])
+    if (response.rows.length === 0) {
+        await db.query('INSERT INTO users (username, email, avatar) VALUES ($1, $2)', [data.user?.email?.split("@")[0], data.user?.email, data.user?.user_metadata.avatar_url])
+    }
+    res.json({ success: true, message: "user registered successfully" })
+})
 auth.get("/getuser", verifyToken, (req: any, res) => {
     return res.json(req.user)
 })

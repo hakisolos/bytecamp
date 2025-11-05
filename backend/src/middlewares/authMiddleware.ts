@@ -1,13 +1,14 @@
 import { NextFunction, Request, Response } from "express"
 import jwt from "jsonwebtoken"
 import { config } from "dotenv"
+import supabase from "../config/supabase"
 config()
 
 export interface Authreq extends Request {
     user?: any
 }
 
-export const verifyToken = (req: Authreq, res: Response, next: NextFunction) => {
+export const verifyToken = async (req: Authreq, res: Response, next: NextFunction) => {
     const header = req.headers["authorization"];
     const token = header?.split(" ")[1]
     if (!token) {
@@ -17,9 +18,18 @@ export const verifyToken = (req: Authreq, res: Response, next: NextFunction) => 
     try {
         const payload = jwt.verify(token, String(process.env.JWT_SECRET))
         req.user = payload;
-        next()
+        return next()
     } catch (e) {
         console.error(e)
-        return res.status(500).json({ error: e })
     }
+    const { data, error } = await supabase.auth.getUser(token)
+    if (error) {
+        res.status(403).json({ error: 'invalid token' })
+    }
+    req.user = {
+        id: data.user?.id,
+        email: data.user?.email,
+        username: data.user?.email?.split("@")[0]
+    }
+    next()
 }

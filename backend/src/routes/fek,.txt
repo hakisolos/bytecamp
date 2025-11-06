@@ -1,0 +1,48 @@
+import express from "express";
+import supabase from "../config/supabase";
+import db from "../config/database";
+import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
+
+const auth = express.Router();
+auth.use(cookieParser());
+
+auth.get('/oauth/github', async (req, res) => {
+    try {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: "github",
+            options: {
+                redirectTo: "http://localhost:8080/api/auth/oauth/callback"
+            }
+        });
+        if (error) return res.status(400).json({ success: false, message: error.message });
+        res.redirect(data.url);
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+});
+
+auth.get('/oauth/failure', (req, res) => {
+    return res.send('OAuth failed 😔');
+});
+
+auth.get("/oauth/callback", async (req, res) => {
+    try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error || !session) return res.redirect("/api/auth/oauth/failure");
+        const user = session.user;
+        const username = user.email.split("@")[0];
+        const avatar = `https://ui-avatars.com/api/?name=${username}`;
+        const response = await db.query('SELECT * FROM users WHERE email = $1', [user.email]);
+        if (response.rows.length === 0) {
+            await db.query('INSERT INTO users (username, email, avatar) VALUES ($1, $2, $3)', [username, user.email, avatar]);
+        }
+        const token = jwt.sign({ id: user.id, username, email: user.email }, process.env.JWT_SECRET!, { expiresIn: "7d" });
+        res.cookie("token", token, { httpOnly: true, secure: false });
+        res.redirect("http://localhost:8080/dashboard");
+    } catch (e) {
+        return res.status(500).send("Internal server error 😔");
+    }
+});
+
+export default auth;

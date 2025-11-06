@@ -3,13 +3,17 @@ import dotenv from 'dotenv'
 import db from "../config/database";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import supabase from "../config/supabase";
+import { Client, ID, Account, OAuthProvider, Avatars } from "appwrite";
 import { verifyToken } from "../middlewares/authMiddleware";
+import supabase from "../config/supabase";
 
 dotenv.config()
 
 
 const auth = e.Router()
+
+const client = new Client().setEndpoint(String(process.env.APPWRITE_ENDPOINT)).setProject(String(process.env.APPWRITE_PROJECT_ID))
+const account = new Account(client)
 
 auth.get('/', (req, res) => {
     return res.send('auth service running')
@@ -53,22 +57,55 @@ auth.post('/login', async (req, res) => {
     }, String(process.env.JWT_SECRET), { expiresIn: "7d" })
     return res.json({ success: false, message: "Login successful", jwt_token: token })
 })
-
-
-
-auth.get('/oauth/callback', async (req, res) => {
-    const { data, error } = await supabase.auth.getUser(
-        req.headers.authorization?.replace("Bearer ", "")
-    )
-    if (error) {
-        res.status(400).json({ success: false, error: error.message })
-    }
-    const response = await db.query('SELECT * FROM users WHERE email = $1', [data.user?.email])
-    if (response.rows.length === 0) {
-        await db.query('INSERT INTO users (username, email, avatar) VALUES ($1, $2)', [data.user?.email?.split("@")[0], data.user?.email, data.user?.user_metadata.avatar_url])
-    }
-    res.json({ success: true, message: "user registered successfully" })
+//https://fra.cloud.appwrite.io/v1/account/sessions/oauth2/callback/github/690cebfd002c70d11b51
+auth.get('/outh/google', async (req, res) => {
+    account.createOAuth2Session({
+        provider: OAuthProvider.Google,
+        success: 'http://localhost:8080/auth/oauth/callback',
+        failure: 'http://localhost:8080/auth/oauth/failure'
+    })
 })
+auth.get('/oauth/github', async (req, res) => {
+    try {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: "github",
+            options: {
+                redirectTo: "http://localhost:8080/api/auth/oauth/callback"
+            }
+        });
+        if (error) return res.status(400).json({ success: false, message: error.message });
+        res.redirect(data.url);
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+});
+
+
+auth.get('/oauth/failure', (req, res) => {
+    return res.send('OAuth failed 😔');
+});
+
+auth.get("/oauth/callback", async (req, res) => {
+    try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error || !session) return res.redirect("/api/auth/oauth/failure");
+        const user = session.user;
+        let username
+        if (user.email) username = user.email.split("@")[0];
+
+        const avatar = `https://ui-avatars.com/api/?name=${username}`;
+        const response = await db.query('SELECT * FROM users WHERE email = $1', [user.email]);
+        if (response.rows.length === 0) {
+            await db.query('INSERT INTO users (username, email, avatar) VALUES ($1, $2, $3)', [username, user.email, avatar]);
+        }
+        const token = jwt.sign({ id: user.id, username, email: user.email }, process.env.JWT_SECRET!, { expiresIn: "7d" });
+        res.cookie("token", token, { httpOnly: true, secure: false });
+        res.redirect("http://localhost:8080/dashboard");
+    } catch (e) {
+        return res.status(500).send("Internal server error 😔");
+    }
+});
+
 auth.get("/getuser", verifyToken, (req: any, res) => {
     return res.json(req.user)
 })

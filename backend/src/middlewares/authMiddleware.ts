@@ -10,7 +10,7 @@ export interface Authreq extends Request {
 
 export const verifyToken = async (req: Authreq, res: Response, next: NextFunction) => {
     const header = req.headers["authorization"];
-    const token = header?.split(" ")[1]
+    const token = req.cookies?.token || header?.split(" ")[1]
     if (!token) {
         return res.status(401).json({ message: "no token provided" })
     }

@@ -23,9 +23,7 @@ function LandingNavbar() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">
-              Features
-            </a>
+
             <a href="/contact" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">
               Contact
             </a>
@@ -57,13 +55,7 @@ function LandingNavbar() {
       {open && (
         <div className="md:hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-t border-gray-200/50 dark:border-gray-700/50">
           <div className="px-4 py-4 space-y-3">
-            <a
-              href="#features"
-              className="block px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all font-medium"
-              onClick={() => setOpen(false)}
-            >
-              Features
-            </a>
+
             <a
               href="/contact"
               className="block px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all font-medium"
@@ -142,20 +134,7 @@ export default function Home() {
         </div>
 
         {/* Stats */}
-        <div className="flex flex-wrap gap-8 justify-center mt-12 text-center">
-          <div className="space-y-1">
-            <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">10K+</div>
-            <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Active Learners</div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">500+</div>
-            <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Projects Completed</div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">98%</div>
-            <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Satisfaction Rate</div>
-          </div>
-        </div>
+
       </section>
 
       {/* Features Section */}

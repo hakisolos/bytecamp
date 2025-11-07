@@ -1,0 +1,60 @@
+
+
+// ===================================================================
+// USAGE EXAMPLES
+// ===================================================================
+
+/*
+// 1. HOW TO USE IN A PROTECTED PAGE (e.g., app/dashboard/page.tsx):
+
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+
+export default function DashboardPage() {
+  return (
+    <ProtectedRoute>
+      <div>Your dashboard content here</div>
+    </ProtectedRoute>
+  );
+}
+
+
+// 2. HOW TO CHECK IF USER IS LOGGED IN (anywhere in your app):
+
+import { isLoggedIn, getUserFromToken } from '@/lib/auth';
+
+function MyComponent() {
+  if (isLoggedIn()) {
+    const user = getUserFromToken();
+    console.log('User is logged in:', user);
+  } else {
+    console.log('User is not logged in');
+  }
+}
+
+
+// 3. HOW TO LOGOUT:
+
+import { logoutUser } from '@/lib/auth';
+
+function LogoutButton() {
+  return (
+    <button onClick={logoutUser}>
+      Logout
+    </button>
+  );
+}
+
+
+// 4. HOW TO FETCH USER DATA FROM BACKEND:
+
+import { fetchUserData } from '@/lib/auth';
+
+async function loadUser() {
+  try {
+    const userData = await fetchUserData();
+    console.log('User data:', userData);
+  } catch (error) {
+    console.error('Failed to load user:', error);
+  }
+}
+*/

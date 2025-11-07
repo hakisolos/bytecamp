@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
-import { ArrowLeftIcon, Mail, Lock, User, Eye, EyeOff } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { ArrowLeftIcon, Mail, Lock, User, Eye, EyeOff, Loader2, CheckCircle2Icon, AlertCircle } from "lucide-react"
 import {
   Field,
   FieldDescription,
@@ -13,11 +14,14 @@ import {
   FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { redirect } from 'next/navigation'
+import { isLoggedIn } from "@/lib/auth"
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -27,13 +31,90 @@ export function SignupForm({
 
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSubmit = () => {
-    console.log('Form submitted:', formData)
-    // Add your form submission logic here
+  const handleSubmit = async () => {
+    // Reset states
+    setError('')
+    setShowSuccessAlert(false)
+
+    // Validation
+    if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
+      setError('Please fill in all fields')
+      return
+    }
+
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters long')
+      return
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const response = await fetch('http://localhost:8080/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        // Show success alert
+        setShowSuccessAlert(true)
+
+        // Wait 1.5 seconds to show the success message, then redirect
+        setTimeout(() => {
+          router.push('/login')
+        }, 1500)
+      } else {
+        // Signup failed
+        setError(data.message || 'Signup failed. Please try again.')
+        setLoading(false)
+      }
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred')
+      setLoading(false)
+    }
   }
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !loading) {
+      handleSubmit()
+    }
+  }
+
+  const handleGoogleLogin = () => {
+    window.location.href = 'http://localhost:8080/api/auth/oauth/google'
+  }
+
+  const handleGithubLogin = () => {
+    window.location.href = 'http://localhost:8080/api/auth/oauth/github'
+  }
+  if (isLoggedIn()) redirect('/dash')
   return (
+
     <div className={cn("min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-blue-950 flex flex-col relative overflow-hidden", className)} {...props}>
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -74,6 +155,39 @@ export function SignupForm({
                   </p>
                 </div>
 
+                {/* Success Alert */}
+                {showSuccessAlert && (
+                  <Alert className="border-green-500/40 bg-green-50/50 dark:bg-green-950/20 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <CheckCircle2Icon className="h-4 w-4 text-green-500" />
+                    <AlertTitle className="font-semibold text-green-600 dark:text-green-500">Account Created Successfully</AlertTitle>
+                    <AlertDescription className="text-sm text-green-700 dark:text-green-400">
+                      Welcome to ByteCamp! 🎉 Redirecting to login...
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Error Alert */}
+                {error && !showSuccessAlert && (
+                  <Alert className="border-red-500/40 bg-red-50/50 dark:bg-red-950/20 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <AlertCircle className="h-4 w-4 text-red-500" />
+                    <AlertTitle className="font-semibold text-red-600 dark:text-red-500">Error</AlertTitle>
+                    <AlertDescription className="text-sm text-red-700 dark:text-red-400">
+                      {error}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Loading State Alert */}
+                {loading && !showSuccessAlert && !error && (
+                  <Alert className="border-blue-500/40 bg-blue-50/50 dark:bg-blue-950/20 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
+                    <AlertTitle className="font-semibold text-blue-600 dark:text-blue-500">Creating your account...</AlertTitle>
+                    <AlertDescription className="text-sm text-blue-700 dark:text-blue-400">
+                      Please wait while we set up your account
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 {/* Username Field */}
                 <Field>
                   <FieldLabel htmlFor="username" className="text-sm font-medium">Username</FieldLabel>
@@ -85,8 +199,10 @@ export function SignupForm({
                       placeholder="johndoe"
                       value={formData.username}
                       onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                      onKeyPress={handleKeyPress}
                       className="pl-10 h-11 bg-white/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 transition-all duration-300"
                       required
+                      disabled={loading || showSuccessAlert}
                     />
                   </div>
                 </Field>
@@ -102,8 +218,10 @@ export function SignupForm({
                       placeholder="m@example.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onKeyPress={handleKeyPress}
                       className="pl-10 h-11 bg-white/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 transition-all duration-300"
                       required
+                      disabled={loading || showSuccessAlert}
                     />
                   </div>
                 </Field>
@@ -119,13 +237,16 @@ export function SignupForm({
                       placeholder="••••••••"
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      onKeyPress={handleKeyPress}
                       className="pl-10 pr-10 h-11 bg-white/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 transition-all duration-300"
                       required
+                      disabled={loading || showSuccessAlert}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      disabled={loading || showSuccessAlert}
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -145,13 +266,16 @@ export function SignupForm({
                       placeholder="••••••••"
                       value={formData.confirmPassword}
                       onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                      onKeyPress={handleKeyPress}
                       className="pl-10 pr-10 h-11 bg-white/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 transition-all duration-300"
                       required
+                      disabled={loading || showSuccessAlert}
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      disabled={loading || showSuccessAlert}
                     >
                       {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -165,9 +289,17 @@ export function SignupForm({
                 <Field className="pt-2">
                   <Button
                     onClick={handleSubmit}
-                    className="w-full h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 transform hover:scale-[1.02]"
+                    disabled={loading || showSuccessAlert}
+                    className="w-full h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
-                    Create Account
+                    {loading || showSuccessAlert ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        {showSuccessAlert ? 'Success! Redirecting...' : 'Creating Account...'}
+                      </>
+                    ) : (
+                      'Create Account'
+                    )}
                   </Button>
                 </Field>
 
@@ -181,7 +313,9 @@ export function SignupForm({
                   <Button
                     variant="outline"
                     type="button"
-                    className="w-full h-11 border-2 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300 group"
+                    onClick={handleGoogleLogin}
+                    disabled={loading || showSuccessAlert}
+                    className="w-full h-11 border-2 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300 group disabled:opacity-50"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5 group-hover:scale-110 transition-transform">
                       <path
@@ -194,24 +328,26 @@ export function SignupForm({
                   <Button
                     variant="outline"
                     type="button"
-                    className="w-full h-11 border-2 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300 group"
+                    onClick={handleGithubLogin}
+                    disabled={loading || showSuccessAlert}
+                    className="w-full h-11 border-2 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300 group disabled:opacity-50"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5 group-hover:scale-110 transition-transform">
                       <path
-                        d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
+                        d="M12 0C5.37 0 0 5.373 0 12c0 5.303 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.726-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.73.083-.73 1.205.085 1.84 1.238 1.84 1.238 1.07 1.835 2.807 1.305 3.492.997.108-.775.418-1.305.76-1.605-2.665-.305-5.467-1.335-5.467-5.932 0-1.31.465-2.38 1.235-3.22-.123-.303-.535-1.527.117-3.176 0 0 1.008-.322 3.3 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.29-1.552 3.296-1.23 3.296-1.23.654 1.65.242 2.873.12 3.176.77.84 1.233 1.91 1.233 3.22 0 4.61-2.807 5.625-5.48 5.922.43.37.814 1.096.814 2.21 0 1.595-.015 2.877-.015 3.27 0 .32.216.694.825.576C20.565 21.796 24 17.3 24 12c0-6.627-5.373-12-12-12z"
                         fill="currentColor"
                       />
                     </svg>
-                    <span className="ml-2 font-medium hidden sm:inline">Apple</span>
+                    <span className="ml-2 font-medium hidden sm:inline">GitHub</span>
                   </Button>
                 </Field>
 
                 {/* Sign In Link */}
                 <FieldDescription className="text-center pt-4">
                   Already have an account?{" "}
-                  <a href="#" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:underline font-semibold transition-colors">
+                  <Link href="/login" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:underline font-semibold transition-colors">
                     Sign in
-                  </a>
+                  </Link>
                 </FieldDescription>
               </FieldGroup>
             </div>

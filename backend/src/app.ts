@@ -1,7 +1,8 @@
 import e from "express";
 import type { Application, Request, Response } from "express";
 import auth from "./routes/authRoute";
-import coursesRouter from "./routes/courseRoutes";
+import coursesRouter from "./routes/courseRoute";
+import user from "./routes/userRoutes";
 import cors from 'cors'
 import cookieParser from "cookie-parser";
 import dotenv from 'dotenv'
@@ -19,6 +20,7 @@ app.use(cookieParser())
 app.use(cors())
 app.use("/api/auth", auth)
 app.use("/api/course", coursesRouter)
+app.use("/api/user", user)
 app.get("/", (req: Request, res: Response) => {
     return res.send("hello world")
 })

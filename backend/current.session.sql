@@ -1,0 +1,9 @@
+ALTER TABLE users
+ALTER COLUMN level
+SET DEFAULT 0,
+    ALTER COLUMN rank
+SET DEFAULT 'bronze',
+    ALTER COLUMN courses
+SET DEFAULT '[]'::jsonb,
+    ALTER COLUMN expoints
+SET DEFAULT 0;

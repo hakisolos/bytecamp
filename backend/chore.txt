@@ -1,0 +1,3 @@
+UPDATE users
+SET followers = array_append(followers, 'kaima@gmail.com')
+WHERE name = 'Haki';

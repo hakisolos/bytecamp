@@ -32,6 +32,14 @@
             "connectString": "ostgresql://haki:hakisolos@localhost:5432/bytecamp",
             "name": "bytelocal",
             "group": "dcker"
+        },
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "driver": "PostgreSQL",
+            "connectString": "postgresql://haki:hakisolos@localhost:5433/bytecamp?sslmode=disable",
+            "name": "current"
         }
     ]
 }

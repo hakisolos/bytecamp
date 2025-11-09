@@ -20,3 +20,594 @@ container.appendChild(activityElement);
 </body>
 
 </html>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ByteCamp - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+
+        .active-nav-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid white;
+        }
+
+        .empty-state {
+            opacity: 0.7;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 2s infinite;
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar-mobile-open {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <div class="md:hidden fixed top-4 left-4 z-50">
+        <button id="mobileMenuButton" class="p-2 rounded-md bg-blue-600 text-white shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+    </div>
+
+    <div class="sidebar gradient-bg text-white h-screen fixed top-0 left-0 overflow-y-auto z-40 w-64">
+        <div class="p-6 border-b border-blue-500 flex items-center gap-2">
+            <div class="flex gap-1">
+                <div class="w-2 h-6 bg-white rounded-full"></div>
+                <div class="w-2 h-6 bg-blue-200 rounded-full"></div>
+                <div class="w-2 h-6 bg-blue-300 rounded-full"></div>
+            </div>
+            <h1 class="text-xl font-bold">Byte<span class="text-blue-200">Camp</span></h1>
+        </div>
+
+        <div class="p-4 border-b border-blue-500">
+            <div class="flex items-center space-x-3">
+                <div class="h-10 w-10 rounded-full bg-blue-300 flex items-center justify-center" id="sidebarAvatar">
+                    <i class="fas fa-user text-blue-700"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-white" id="sidebarUserName">Guest User</p>
+                    <p class="text-xs text-blue-200" id="sidebarUserRole">Student</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="mt-4">
+            <a href="dashboard.html" class="nav-item active-nav-item flex items-center px-6 py-3 text-white">
+                <i class="fas fa-home w-5"></i>
+                <span class="mx-3">Dashboard</span>
+            </a>
+            <a href="courses.html"
+                class="nav-item flex items-center px-6 py-3 text-blue-200 hover:bg-blue-800 hover:text-white">
+                <i class="fas fa-book w-5"></i>
+                <span class="mx-3">My Courses</span>
+            </a>
+            <a href="community.html"
+                class="nav-item flex items-center px-6 py-3 text-blue-200 hover:bg-blue-800 hover:text-white">
+                <i class="fas fa-users w-5"></i>
+                <span class="mx-3">Community</span>
+            </a>
+            <a href="notifications.html"
+                class="nav-item flex items-center px-6 py-3 text-blue-200 hover:bg-blue-800 hover:text-white">
+                <i class="fas fa-bell w-5"></i>
+                <span class="mx-3">Notifications</span>
+            </a>
+            <a href="profile.html"
+                class="nav-item flex items-center px-6 py-3 text-blue-200 hover:bg-blue-800 hover:text-white">
+                <i class="fas fa-user-cog w-5"></i>
+                <span class="mx-3">Profile</span>
+            </a>
+            <a href="settings.html"
+                class="nav-item flex items-center px-6 py-3 text-blue-200 hover:bg-blue-800 hover:text-white">
+                <i class="fas fa-cog w-5"></i>
+                <span class="mx-3">Settings</span>
+            </a>
+        </nav>
+
+        <div class="absolute bottom-0 w-full p-4 border-t border-blue-500">
+            <div class="mb-2 flex justify-between text-sm">
+                <span class="text-blue-200">Monthly Goal</span>
+                <span class="text-white" id="monthlyGoal">0%</span>
+            </div>
+            <div class="w-full bg-blue-800 rounded-full h-2">
+                <div class="bg-green-400 h-2 rounded-full progress-bar" style="width: 0%" id="monthlyGoalBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="md:ml-64 min-h-screen fade-in">
+        <header class="bg-white shadow-sm sticky top-0 z-30">
+            <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                <div class="flex items-center">
+                    <div class="md:hidden mr-4">
+                        <button id="mobileMenuButton" class="p-2 rounded-md bg-blue-600 text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900" id="greeting">Welcome to ByteCamp</h1>
+                        <p class="text-gray-500">Start your coding journey today</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="notifications.html"
+                        class="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 relative transition-all duration-300 hover:scale-110">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 hidden"
+                            id="notificationDot"></span>
+                    </a>
+                    <div class="relative">
+                        <button id="userMenuButton"
+                            class="flex items-center text-sm rounded-full focus:outline-none transition-all duration-300 hover:scale-105">
+                            <div class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-md"
+                                id="headerAvatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </button>
+                        <div id="userDropdown"
+                            class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50 border border-gray-200">
+                            <a href="profile.html"
+                                class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 transition-colors">
+                                <i class="fas fa-user-circle mr-3 text-blue-500"></i>
+                                Your Profile
+                            </a>
+                            <a href="settings.html"
+                                class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 transition-colors">
+                                <i class="fas fa-cog mr-3 text-blue-500"></i>
+                                Settings
+                            </a>
+                            <div class="border-t border-gray-100 my-1"></div>
+                            <a href="#" id="loginButton"
+                                class="flex items-center px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors">
+                                <i class="fas fa-sign-in-alt mr-3"></i>
+                                Sign In
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow p-6 card-hover slide-in">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <i class="fas fa-book text-lg"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-500">Active Courses</h3>
+                            <p class="text-2xl font-semibold text-gray-900" id="activeCourses">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow p-6 card-hover slide-in" style="animation-delay: 0.1s">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                            <i class="fas fa-check-circle text-lg"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-500">Completed</h3>
+                            <p class="text-2xl font-semibold text-gray-900" id="completedCourses">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow p-6 card-hover slide-in" style="animation-delay: 0.2s">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                            <i class="fas fa-clock text-lg"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-500">Learning Hours</h3>
+                            <p class="text-2xl font-semibold text-gray-900" id="learningHours">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow p-6 card-hover slide-in" style="animation-delay: 0.3s">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                            <i class="fas fa-fire text-lg"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-sm font-medium text-gray-500">Current Streak</h3>
+                            <p class="text-2xl font-semibold text-gray-900" id="learningStreak">0 days</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 space-y-8">
+                    <div class="bg-white rounded-xl shadow overflow-hidden slide-in" style="animation-delay: 0.4s">
+                        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                            <h2 class="text-lg font-semibold text-gray-900">Continue Learning</h2>
+                            <a href="courses.html"
+                                class="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">Browse
+                                Courses</a>
+                        </div>
+                        <div id="currentCoursesList" class="p-8 text-center empty-state">
+                            <i class="fas fa-book-open text-5xl mx-auto text-gray-400 mb-4"></i>
+                            <h3 class="mt-4 text-lg font-medium text-gray-900">No active courses</h3>
+                            <p class="mt-2 text-gray-500">Start your first course to begin your coding journey</p>
+                            <a href="courses.html"
+                                class="mt-4 inline-block bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                                Explore Courses
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow overflow-hidden slide-in" style="animation-delay: 0.5s">
+                        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                            <h2 class="text-lg font-semibold text-gray-900">Community Activity</h2>
+                            <a href="community.html"
+                                class="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">See
+                                All</a>
+                        </div>
+                        <div id="communityActivity" class="p-8 text-center empty-state">
+                            <i class="fas fa-users text-5xl mx-auto text-gray-400 mb-4"></i>
+                            <h3 class="mt-4 text-lg font-medium text-gray-900">Join the community</h3>
+                            <p class="mt-2 text-gray-500">Connect with other learners and share your progress</p>
+                            <a href="community.html"
+                                class="mt-4 inline-block bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                                Visit Community
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-8">
+                    <div class="bg-white rounded-xl shadow overflow-hidden slide-in" style="animation-delay: 0.6s">
+                        <div class="p-6">
+                            <div class="flex flex-col items-center">
+                                <div class="h-24 w-24 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg mb-4"
+                                    id="profileAvatar">
+                                    <i class="fas fa-user text-2xl"></i>
+                                </div>
+                                <h2 class="mt-2 text-xl font-bold text-gray-900" id="profileName">Welcome to ByteCamp
+                                </h2>
+                                <p class="text-sm text-gray-500" id="profileRole">Start learning to unlock your profile
+                                </p>
+                                <div class="mt-4 flex flex-wrap justify-center gap-2" id="profileSkills">
+                                </div>
+                            </div>
+                            <div class="mt-6 grid grid-cols-2 gap-4 text-center">
+                                <div>
+                                    <p class="text-sm text-gray-500">Learning Level</p>
+                                    <p class="text-lg font-semibold text-gray-900" id="learningLevel">Beginner</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Points</p>
+                                    <p class="text-lg font-semibold text-gray-900" id="userPoints">0</p>
+                                </div>
+                            </div>
+                            <a href="profile.html"
+                                class="mt-6 w-full block bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center font-medium">
+                                Complete Your Profile
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow overflow-hidden slide-in" style="animation-delay: 0.7s">
+                        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                            <h2 class="text-lg font-semibold text-gray-900">Recommended</h2>
+                            <a href="browse-courses.html"
+                                class="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">See
+                                All</a>
+                        </div>
+                        <div id="recommendedCourses" class="p-8 text-center empty-state">
+                            <i class="fas fa-graduation-cap text-5xl mx-auto text-gray-400 mb-4"></i>
+                            <h3 class="mt-4 text-lg font-medium text-gray-900">Start learning</h3>
+                            <p class="mt-2 text-gray-500">Personalized recommendations will appear here</p>
+                            <a href="browse-courses.html"
+                                class="mt-4 inline-block bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                                Browse Courses
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function initializeGuestData() {
+            const guestData = {
+                name: "Haki",
+                role: "C.E.O",
+                learningLevel: "Pro",
+                points: 0,
+                streak: 0,
+                stats: {
+                    activeCourses: 0,
+                    completedCourses: 0,
+                    learningHours: 0,
+                    monthlyGoal: 0
+                }
+            };
+
+            document.getElementById('sidebarUserName').textContent = guestData.name;
+            document.getElementById('sidebarUserRole').textContent = guestData.role;
+            document.getElementById('greeting').textContent = "Welcome to ByteCamp";
+            document.getElementById('profileName').textContent = guestData.name;
+            document.getElementById('profileRole').textContent = `${guestData.role} at ByteCamp`;
+            document.getElementById('learningLevel').textContent = guestData.learningLevel;
+            document.getElementById('userPoints').textContent = guestData.points.toLocaleString();
+            document.getElementById('learningStreak').textContent = `${guestData.streak} days`;
+
+            document.getElementById('activeCourses').textContent = guestData.stats.activeCourses;
+            document.getElementById('completedCourses').textContent = guestData.stats.completedCourses;
+            document.getElementById('learningHours').textContent = guestData.stats.learningHours;
+            document.getElementById('monthlyGoal').textContent = `${guestData.stats.monthlyGoal}%`;
+            document.getElementById('monthlyGoalBar').style.width = `${guestData.stats.monthlyGoal}%`;
+
+            renderRecommendedCourses([
+                {
+                    title: "Introduction to Python",
+                    description: "Learn the basics of Python programming",
+                    duration: "4 hours",
+                    difficulty: "Beginner"
+                },
+                {
+                    title: "Web Development Fundamentals",
+                    description: "HTML, CSS, and JavaScript basics",
+                    duration: "6 hours",
+                    difficulty: "Beginner"
+                },
+                {
+                    title: "Data Science Essentials",
+                    description: "Introduction to data analysis and visualization",
+                    duration: "8 hours",
+                    difficulty: "Intermediate"
+                }
+            ]);
+
+            renderCommunityActivity([
+                {
+                    user: {
+                        name: "Haki",
+                        initials: "AJ",
+                        color: "blue"
+                    },
+                    time: "2 hours ago",
+                    message: "Just completed the JavaScript course!"
+                },
+                {
+                    user: {
+                        name: "Haki",
+                        initials: "SW",
+                        color: "green"
+                    },
+                    time: "5 hours ago",
+                    message: "Started learning React today. Excited!"
+                }
+            ]);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const mobileMenuButton = document.getElementById('mobileMenuButton');
+            const sidebar = document.querySelector('.sidebar');
+            const userMenuButton = document.getElementById('userMenuButton');
+            const userDropdown = document.getElementById('userDropdown');
+
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', () => {
+                    sidebar.classList.toggle('sidebar-mobile-open');
+                });
+            }
+
+            if (userMenuButton) {
+                userMenuButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    userDropdown.classList.toggle('hidden');
+                });
+            }
+
+            document.addEventListener('click', () => {
+                userDropdown.classList.add('hidden');
+            });
+
+            document.addEventListener('click', (event) => {
+                const isClickInsideSidebar = sidebar.contains(event.target);
+                const isClickInsideMobileMenuButton = mobileMenuButton.contains(event.target);
+
+                if (!isClickInsideSidebar && !isClickInsideMobileMenuButton && window.innerWidth < 768) {
+                    sidebar.classList.remove('sidebar-mobile-open');
+                }
+            });
+
+            initializeGuestData();
+
+            document.getElementById('loginButton').addEventListener('click', function (e) {
+                e.preventDefault();
+                alert('Login functionality would go here. In a real app, this would redirect to a login page.');
+            });
+        });
+
+        function renderCurrentCourses(courses) {
+            const container = document.getElementById('currentCoursesList');
+            container.innerHTML = '';
+
+            courses.forEach(course => {
+                const courseElement = document.createElement('div');
+                courseElement.className = 'p-6 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-all duration-300';
+                courseElement.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h3 class="text-lg font-medium text-gray-900">${course.title}</h3>
+                            <p class="text-sm text-gray-500 mt-1">${course.description}</p>
+                        </div>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-${course.color}-100 text-${course.color}-800 ml-4">
+                            ${course.progress}% Complete
+                        </span>
+                    </div>
+                    <div class="mt-4">
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-${course.color}-600 h-2 rounded-full progress-bar" style="width: ${course.progress}%"></div>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex justify-between text-sm text-gray-500">
+                        <span>${course.completedLessons}/${course.totalLessons} lessons</span>
+                        <span>Next: ${course.nextLesson}</span>
+                    </div>
+                    <div class="mt-4">
+                        <button class="w-full bg-white border border-${course.color}-600 text-${course.color}-600 py-2 px-4 rounded-lg hover:bg-${course.color}-50 transition-colors">
+                            Continue Learning
+                        </button>
+                    </div>
+                `;
+                container.appendChild(courseElement);
+            });
+        }
+
+        function renderRecommendedCourses(courses) {
+            const container = document.getElementById('recommendedCourses');
+            container.innerHTML = '';
+
+            courses.forEach(course => {
+                const courseElement = document.createElement('div');
+                courseElement.className = 'p-6 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-all duration-300';
+                courseElement.innerHTML = `
+                    <h3 class="text-md font-medium text-gray-900">${course.title}</h3>
+                    <p class="text-sm text-gray-500 mt-1">${course.description}</p>
+                    <div class="mt-3 flex items-center text-sm text-gray-500">
+                        <i class="fas fa-clock mr-1"></i>
+                        <span>${course.duration}</span>
+                        <span class="mx-2">•</span>
+                        <span>${course.difficulty}</span>
+                    </div>
+                    <button class="mt-4 w-full bg-white border border-blue-600 text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition-colors">
+                        Explore Course
+                    </button>
+                `;
+                container.appendChild(courseElement);
+            });
+        }
+
+        function renderCommunityActivity(activities) {
+            const container = document.getElementById('communityActivity');
+            container.innerHTML = '';
+
+            activities.forEach(activity => {
+                const activityElement = document.createElement('div');
+                activityElement.className = 'p-6 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition-all duration-300';
+                activityElement.innerHTML = `
+                    <div class="flex">
+                        <div class="h-10 w-10 rounded-full bg-gradient-to-r from-${activity.user.color}-500 to-${activity.user.color}-600 flex items-center justify-center text-white font-bold shadow-md">
+                            ${activity.user.initials}
+                        </div>
+                        <div class="ml-4">
+                            <div class="flex items-center">
+                                <p class="text-sm font-medium text-gray-900">${activity.user.name}</p>
+                                <span class="ml-2 text-xs text-gray-500">${activity.time}</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">${activity.message}</p>
+                            <div class="mt-2 flex space-x-4">
+                                <button class="text-sm text-gray-500 hover:text-blue-600 transition-colors">
+                                    <i class="fas fa-thumbs-up mr-1"></i> Like
+                                </button>
+                                <button class="text-sm text-gray-500 hover:text-blue-600 transition-colors">
+                                    <i class="fas fa-comment mr-1"></i> Comment
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(activityElement);
+            });
+        }
+    </script>
+</body>
+
+</html>

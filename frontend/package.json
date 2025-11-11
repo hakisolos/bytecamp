@@ -1,0 +1,17 @@
+{
+  "name": "bytecamp-frontend",
+  "version": "1.0.0",
+  "main": "script.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@hono/node-server": "^1.19.6",
+    "hono": "^4.10.5"
+  }
+}

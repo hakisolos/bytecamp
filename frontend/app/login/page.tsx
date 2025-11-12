@@ -1,0 +1,340 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/auth';
+
+export default function SignInPage() {
+    const router = useRouter();
+    const [emailOrUsername, setEmailOrUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+    const [notification, setNotification] = useState<{
+        show: boolean;
+        message: string;
+        isError: boolean;
+    }>({ show: false, message: '', isError: false });
+
+    // Check if user is already logged in
+    useEffect(() => {
+        const checkAuth = () => {
+            const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt');
+            if (token) {
+                router.push('/dash');
+            } else {
+                setIsCheckingAuth(false);
+            }
+        };
+
+        checkAuth();
+    }, [router]);
+
+    const showNotification = (message: string, isError = false) => {
+        setNotification({ show: true, message, isError });
+        setTimeout(() => {
+            setNotification({ show: false, message: '', isError: false });
+        }, 4000);
+    };
+
+    const handleGoogleAuth = () => {
+        showNotification('Authenticating with Google...');
+        // Add Google OAuth logic here
+    };
+
+    const handleGithubAuth = () => {
+        showNotification('Authenticating with GitHub...');
+        // Add GitHub OAuth logic here
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        try {
+            const isEmail = emailOrUsername.includes('@');
+            const body = isEmail
+                ? { email: emailOrUsername, password }
+                : { username: emailOrUsername, password };
+
+            const response = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
+            });
+
+            if (response.status === 404) {
+                showNotification('Login failed, user not found', true);
+                setIsLoading(false);
+                return;
+            }
+
+            if (!response.ok) {
+                showNotification('An error occurred', true);
+                setIsLoading(false);
+                return;
+            }
+
+            const data = await response.json();
+
+            // Store JWT token
+            if (rememberMe) {
+                localStorage.setItem('jwt', data.jwt_token);
+            } else {
+                sessionStorage.setItem('jwt', data.jwt_token);
+            }
+
+            showNotification('Success! You have been signed in.');
+
+            setTimeout(() => {
+                router.push('/dash');
+            }, 1000);
+        } catch (error) {
+            console.error('Login error:', error);
+            showNotification('Network error. Please try again.', true);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Don't render the page if checking authentication
+    if (isCheckingAuth) {
+        return (
+            <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden">
+            {/* Floating Shapes */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-[10%] left-[10%] w-24 h-24 bg-blue-600 opacity-20 rounded-[30%_70%_70%_30%/30%_30%_70%_70%] animate-float blur-xl" />
+                <div className="absolute top-[70%] right-[10%] w-20 h-20 bg-blue-500 opacity-20 rounded-full animate-float-delayed-2 blur-xl" />
+                <div className="absolute bottom-[10%] left-[20%] w-28 h-28 bg-blue-400 opacity-20 rounded-[40%_60%_60%_40%/40%_40%_60%_60%] animate-float-delayed-4 blur-xl" />
+            </div>
+
+            <div className="w-full max-w-md relative z-10">
+                {/* Header */}
+                <div className="text-center mb-6 sm:mb-8">
+                    <div className="inline-flex items-center gap-2 mb-3 sm:mb-4">
+                        <div className="flex gap-1">
+                            <div className="w-2 h-6 sm:h-8 bg-blue-600 rounded-full" />
+                            <div className="w-2 h-6 sm:h-8 bg-blue-500 rounded-full" />
+                            <div className="w-2 h-6 sm:h-8 bg-blue-400 rounded-full" />
+                        </div>
+                        <h1 className="text-3xl sm:text-4xl font-bold text-white">
+                            Byte<span className="text-blue-500">Camp</span>
+                        </h1>
+                    </div>
+                    <p className="text-gray-400 text-base sm:text-lg">
+                        Sign in to continue your journey
+                    </p>
+                </div>
+
+                {/* Main Card */}
+                <div className="bg-gray-900 border border-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 relative overflow-hidden backdrop-blur-sm">
+                    {/* Notification - Attached to form */}
+                    <div className={`mb-4 transition-all duration-300 ${notification.show ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 h-0 mb-0'
+                        }`}>
+                        {notification.show && (
+                            <div className={`flex items-start gap-3 p-4 rounded-lg border ${notification.isError
+                                ? 'bg-red-500/10 border-red-500/50 text-red-400'
+                                : 'bg-green-500/10 border-green-500/50 text-green-400'
+                                }`}>
+                                {notification.isError ? (
+                                    <AlertCircle size={20} className="flex-shrink-0 mt-0.5" />
+                                ) : (
+                                    <CheckCircle2 size={20} className="flex-shrink-0 mt-0.5" />
+                                )}
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium">{notification.message}</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Social Auth Buttons */}
+                    <div className="flex justify-center gap-4 mb-6">
+                        <button
+                            onClick={handleGoogleAuth}
+                            className="w-12 h-12 flex items-center justify-center border-2 border-gray-700 rounded-full hover:border-blue-500 hover:bg-gray-800 transition-all duration-200 relative overflow-hidden group"
+                            title="Sign in with Google"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-500" />
+                            <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                            </svg>
+                        </button>
+
+                        <button
+                            onClick={handleGithubAuth}
+                            className="w-12 h-12 flex items-center justify-center bg-gray-800 border-2 border-gray-700 rounded-full hover:bg-gray-700 hover:border-gray-600 transition-all duration-200 relative overflow-hidden group"
+                            title="Sign in with GitHub"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-500" />
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 24 24">
+                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="relative my-6">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-800" />
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-4 bg-gray-900 text-gray-400">Or continue with email</span>
+                        </div>
+                    </div>
+
+                    {/* Sign In Form */}
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Email Address / Username
+                            </label>
+                            <input
+                                type="text"
+                                value={emailOrUsername}
+                                onChange={(e) => setEmailOrUsername(e.target.value)}
+                                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-white placeholder-gray-500"
+                                placeholder="user@example.com"
+                                required
+                                disabled={isLoading}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Password
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full px-4 py-3 pr-12 bg-gray-800 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-white placeholder-gray-500"
+                                    placeholder="••••••••"
+                                    required
+                                    disabled={isLoading}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors"
+                                    disabled={isLoading}
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-sm">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-700 rounded focus:ring-blue-500 focus:ring-offset-gray-900"
+                                    disabled={isLoading}
+                                />
+                                <span className="text-gray-400">Remember me</span>
+                            </label>
+                            <button
+                                type="button"
+                                className="text-blue-500 hover:text-blue-400 font-medium"
+                                disabled={isLoading}
+                            >
+                                Forgot password?
+                            </button>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed animate-button-pulse"
+                        >
+                            {isLoading ? 'Signing In...' : 'Sign In'}
+                        </button>
+                    </form>
+
+                    {/* Sign Up Link */}
+                    <div className="mt-6 text-center text-sm text-gray-400">
+                        <span>Don't have an account?</span>
+                        <a
+                            href="/signup"
+                            className="text-blue-500 hover:text-blue-400 font-medium ml-1 transition-all duration-300 hover:underline"
+                        >
+                            Sign Up
+                        </a>
+                    </div>
+                </div>
+
+                {/* Terms */}
+                <p className="text-center text-xs sm:text-sm text-gray-500 mt-4 sm:mt-6">
+                    By continuing, you agree to ByteCamp's{' '}
+                    <button className="text-blue-500 hover:underline transition-all duration-300">
+                        Terms of Service
+                    </button>
+                    {' '}and{' '}
+                    <button className="text-blue-500 hover:underline transition-all duration-300">
+                        Privacy Policy
+                    </button>
+                </p>
+            </div>
+
+            <style jsx>{`
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-20px) rotate(180deg);
+          }
+        }
+
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+
+        .animate-float-delayed-2 {
+          animation: float 6s ease-in-out infinite 2s;
+        }
+
+        .animate-float-delayed-4 {
+          animation: float 6s ease-in-out infinite 4s;
+        }
+
+        @keyframes buttonPulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+          }
+          70% {
+            box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+          }
+        }
+
+        .animate-button-pulse {
+          animation: buttonPulse 2s infinite;
+        }
+      `}</style>
+        </div>
+    );
+}

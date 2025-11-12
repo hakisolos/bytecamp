@@ -1,0 +1,430 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import {
+    Home, Book, Users, Bell, UserCircle, Settings,
+    Code, User, CheckCircle, Clock, Flame,
+    BookOpen, GraduationCap, ThumbsUp, MessageCircle
+} from 'lucide-react';
+
+interface Course {
+    title: string;
+    description: string;
+    duration: string;
+    difficulty: string;
+}
+
+interface Activity {
+    user: {
+        name: string;
+        initials: string;
+        color: string;
+    };
+    time: string;
+    message: string;
+}
+
+interface GuestData {
+    name: string;
+    role: string;
+    learningLevel: string;
+    points: number;
+    streak: number;
+    stats: {
+        activeCourses: number;
+        completedCourses: number;
+        learningHours: number;
+        monthlyGoal: number;
+    };
+}
+
+export default function ByteCampDashboard() {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const [showSwipeNotification, setShowSwipeNotification] = useState(false);
+    const [touchStart, setTouchStart] = useState(0);
+    const [touchEnd, setTouchEnd] = useState(0);
+
+    const [guestData] = useState<GuestData>({
+        name: "Haki",
+        role: "C.E.O",
+        learningLevel: "Pro",
+        points: 0,
+        streak: 0,
+        stats: {
+            activeCourses: 0,
+            completedCourses: 0,
+            learningHours: 0,
+            monthlyGoal: 0
+        }
+    });
+
+    const recommendedCourses: Course[] = [
+        {
+            title: "Introduction to Python",
+            description: "Learn the basics of Python programming",
+            duration: "4 hours",
+            difficulty: "Beginner"
+        },
+        {
+            title: "Web Development Fundamentals",
+            description: "HTML, CSS, and JavaScript basics",
+            duration: "6 hours",
+            difficulty: "Beginner"
+        },
+        {
+            title: "Data Science Essentials",
+            description: "Introduction to data analysis and visualization",
+            duration: "8 hours",
+            difficulty: "Intermediate"
+        }
+    ];
+
+    const communityActivities: Activity[] = [
+        {
+            user: {
+                name: "Haki",
+                initials: "H",
+                color: "bg-blue-100 dark:bg-blue-900 text-blue-600"
+            },
+            time: "2 hours ago",
+            message: "Just completed the JavaScript course!"
+        },
+        {
+            user: {
+                name: "Haki",
+                initials: "H",
+                color: "bg-green-100 dark:bg-green-900 text-green-600"
+            },
+            time: "5 hours ago",
+            message: "Started learning React today. Excited!"
+        }
+    ];
+
+    useEffect(() => {
+        const swipeShown = localStorage.getItem('swipeNotificationShown');
+        if (!swipeShown && window.innerWidth < 768) {
+            setTimeout(() => {
+                setShowSwipeNotification(true);
+                setTimeout(() => setShowSwipeNotification(false), 4000);
+                localStorage.setItem('swipeNotificationShown', 'true');
+            }, 1000);
+        }
+    }, []);
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        setTouchStart(e.touches[0].clientX);
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.touches[0].clientX);
+    };
+
+    const handleTouchEnd = () => {
+        if (touchStart - touchEnd > 80) {
+            setIsSidebarOpen(false);
+        }
+        if (touchEnd - touchStart > 80 && touchStart < window.innerWidth / 2) {
+            setIsSidebarOpen(true);
+        }
+    };
+
+    return (
+        <div
+            className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-300"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+        >
+            {/* Swipe Notification */}
+            {showSwipeNotification && (
+                <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-blue-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 max-w-xs md:hidden animate-in slide-in-from-top">
+                    <span className="text-sm font-medium">👉 Swipe right to open sidebar</span>
+                </div>
+            )}
+
+            {/* Sidebar */}
+            <aside className={`fixed top-0 left-0 w-64 h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-y-auto z-40 transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+                {/* Logo */}
+                <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-600 text-white font-bold text-lg">
+                            <Code size={20} />
+                        </div>
+                        <h1 className="text-xl font-bold">
+                            Byte<span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">Camp</span>
+                        </h1>
+                    </div>
+                </div>
+
+                {/* User Info */}
+                <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 flex items-center justify-center font-semibold">
+                            <User size={20} />
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold">{guestData.name}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{guestData.role}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Navigation */}
+                <nav className="p-4 space-y-2">
+                    <a href="#" className="flex items-center gap-3 px-4 py-2 rounded-lg bg-blue-600 text-white">
+                        <Home size={20} />
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#" className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors">
+                        <Book size={20} />
+                        <span>My Courses</span>
+                    </a>
+                    <a href="#" className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors">
+                        <Users size={20} />
+                        <span>Community</span>
+                    </a>
+                    <a href="#" className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors">
+                        <Bell size={20} />
+                        <span>Notifications</span>
+                    </a>
+                    <a href="#" className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors">
+                        <UserCircle size={20} />
+                        <span>Profile</span>
+                    </a>
+                    <a href="#" className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors">
+                        <Settings size={20} />
+                        <span>Settings</span>
+                    </a>
+                </nav>
+
+                {/* Monthly Goal */}
+                <div className="absolute bottom-0 w-full p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+                    <div className="flex justify-between text-sm mb-3">
+                        <span className="text-gray-500 dark:text-gray-400">Monthly Goal</span>
+                        <span className="font-semibold">{guestData.stats.monthlyGoal}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                        <div className="bg-blue-600 h-full rounded-full transition-all duration-500" style={{ width: `${guestData.stats.monthlyGoal}%` }}></div>
+                    </div>
+                </div>
+            </aside>
+
+            {/* Main Content */}
+            <div className="md:ml-64 min-h-screen transition-all duration-300">
+                {/* Header */}
+                <header className="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                        <div>
+                            <h1 className="text-2xl font-bold">Welcome, {guestData.name}!</h1>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Start your coding journey today</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            {/* Notifications */}
+                            <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative">
+                                <Bell size={20} />
+                            </button>
+
+                            {/* User Menu */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                                    className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 flex items-center justify-center font-semibold hover:ring-2 hover:ring-blue-600 transition-all"
+                                >
+                                    <User size={20} />
+                                </button>
+                                {isUserMenuOpen && (
+                                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2 z-50">
+                                        <a href="#" className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                            <UserCircle size={18} className="text-blue-600" />
+                                            <span>Your Profile</span>
+                                        </a>
+                                        <a href="#" className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                            <Settings size={18} className="text-blue-600" />
+                                            <span>Settings</span>
+                                        </a>
+                                        <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                                        <a href="#" className="flex items-center gap-3 px-4 py-2 text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                            <span>Sign In</span>
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                {/* Main Content Area */}
+                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    {/* Stats Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-600 flex items-center justify-center text-lg">
+                                    <Book size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Active Courses</p>
+                                    <p className="text-2xl font-bold">{guestData.stats.activeCourses}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900 text-green-600 flex items-center justify-center text-lg">
+                                    <CheckCircle size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Completed</p>
+                                    <p className="text-2xl font-bold">{guestData.stats.completedCourses}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900 text-purple-600 flex items-center justify-center text-lg">
+                                    <Clock size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Learning Hours</p>
+                                    <p className="text-2xl font-bold">{guestData.stats.learningHours}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900 text-orange-600 flex items-center justify-center text-lg">
+                                    <Flame size={24} />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Current Streak</p>
+                                    <p className="text-2xl font-bold">{guestData.streak} days</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Main Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Left Column */}
+                        <div className="lg:col-span-2 space-y-8">
+                            {/* Continue Learning */}
+                            <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-lg transition-all duration-300">
+                                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+                                    <h2 className="text-lg font-semibold">Continue Learning</h2>
+                                    <a href="#" className="text-sm text-blue-600 hover:text-blue-500 transition-colors">Browse Courses</a>
+                                </div>
+                                <div className="p-8 text-center">
+                                    <BookOpen className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                                    <h3 className="mt-4 text-lg font-semibold">No active courses</h3>
+                                    <p className="mt-2 text-gray-500 dark:text-gray-400">Start your first course to begin your coding journey</p>
+                                    <a href="#" className="mt-4 inline-block bg-blue-600 text-white py-2 px-6 rounded-lg hover:shadow-lg hover:shadow-blue-600/20 transition-all">
+                                        Explore Courses
+                                    </a>
+                                </div>
+                            </div>
+
+                            {/* Community Activity */}
+                            <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-lg transition-all duration-300">
+                                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+                                    <h2 className="text-lg font-semibold">Community Activity</h2>
+                                    <a href="#" className="text-sm text-blue-600 hover:text-blue-500 transition-colors">See All</a>
+                                </div>
+                                <div>
+                                    {communityActivities.map((activity, index) => (
+                                        <div key={index} className="p-4 border-b border-gray-200 dark:border-gray-800 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                            <div className="flex gap-3">
+                                                <div className={`w-10 h-10 rounded-full ${activity.user.color} flex items-center justify-center text-xs font-semibold flex-shrink-0`}>
+                                                    {activity.user.initials}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center justify-between">
+                                                        <p className="text-sm font-semibold">{activity.user.name}</p>
+                                                        <span className="text-xs text-gray-500 dark:text-gray-400">{activity.time}</span>
+                                                    </div>
+                                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{activity.message}</p>
+                                                    <div className="mt-2 flex gap-4 text-xs">
+                                                        <button className="text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-1">
+                                                            <ThumbsUp size={14} /> Like
+                                                        </button>
+                                                        <button className="text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-1">
+                                                            <MessageCircle size={14} /> Comment
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right Column */}
+                        <div className="space-y-8">
+                            {/* Profile Card */}
+                            <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-lg transition-all duration-300">
+                                <div className="p-6">
+                                    <div className="flex flex-col items-center text-center">
+                                        <div className="w-24 h-24 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 flex items-center justify-center text-3xl font-bold">
+                                            <User size={40} />
+                                        </div>
+                                        <h2 className="mt-4 text-xl font-bold">{guestData.name}</h2>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">{guestData.role} at ByteCamp</p>
+                                        <div className="mt-6 grid grid-cols-2 gap-4 w-full">
+                                            <div>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">Learning Level</p>
+                                                <p className="text-lg font-semibold">{guestData.learningLevel}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">Points</p>
+                                                <p className="text-lg font-semibold">{guestData.points.toLocaleString()}</p>
+                                            </div>
+                                        </div>
+                                        <a href="#" className="mt-6 w-full bg-blue-600 text-white py-2 rounded-lg hover:shadow-lg hover:shadow-blue-600/20 transition-all font-medium">
+                                            Complete Your Profile
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Recommended Courses */}
+                            <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-lg transition-all duration-300">
+                                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+                                    <h2 className="text-lg font-semibold">Recommended</h2>
+                                    <a href="#" className="text-sm text-blue-600 hover:text-blue-500 transition-colors">See All</a>
+                                </div>
+                                <div>
+                                    {recommendedCourses.map((course, index) => (
+                                        <div key={index} className="p-4 border-b border-gray-200 dark:border-gray-800 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+                                            <h3 className="text-sm font-semibold">{course.title}</h3>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{course.description}</p>
+                                            <div className="mt-3 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                                <span className="flex items-center gap-1">
+                                                    <Clock size={12} /> {course.duration}
+                                                </span>
+                                                <span className="px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600">
+                                                    {course.difficulty}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+
+            {/* Overlay for mobile sidebar */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-30 md:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+        </div>
+    );
+}

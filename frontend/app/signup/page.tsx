@@ -118,7 +118,7 @@ export default function SignUpPage() {
                 showNotification('Account created successfully! Redirecting to sign in...');
 
                 setTimeout(() => {
-                    router.push('/signin');
+                    router.push('/login');
                 }, 2000);
             }
         } catch (error) {
@@ -322,7 +322,7 @@ export default function SignUpPage() {
                     <div className="mt-6 text-center text-sm text-gray-400">
                         <span>Already have an account?</span>
                         <a
-                            href="/signin"
+                            href="/login"
                             className="text-blue-500 hover:text-blue-400 font-medium ml-1 transition-all duration-300 hover:underline"
                         >
                             Sign In

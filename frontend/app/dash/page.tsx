@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
     Home, Book, Users, Bell, UserCircle, Settings,
     Code, User, CheckCircle, Clock, Flame,
@@ -24,82 +25,75 @@ interface Activity {
     message: string;
 }
 
-interface GuestData {
-    name: string;
-    role: string;
-    learningLevel: string;
-    points: number;
-    streak: number;
-    stats: {
-        activeCourses: number;
-        completedCourses: number;
-        learningHours: number;
-        monthlyGoal: number;
-    };
+interface UserData {
+    id: number;
+    username: string;
+    email: string;
+    followers: string[];
+    following: string[];
+    courses: string[];
+    avatar: string;
+    level: string;
+    joined_at: string;
+    expoints: number;
+    rank: string;
 }
 
 export default function ByteCampDashboard() {
+    const router = useRouter();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [showSwipeNotification, setShowSwipeNotification] = useState(false);
     const [touchStart, setTouchStart] = useState(0);
     const [touchEnd, setTouchEnd] = useState(0);
+    const [userData, setUserData] = useState<UserData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const [guestData] = useState<GuestData>({
-        name: "Haki",
-        role: "C.E.O",
-        learningLevel: "Pro",
-        points: 0,
-        streak: 0,
-        stats: {
-            activeCourses: 0,
-            completedCourses: 0,
-            learningHours: 0,
-            monthlyGoal: 0
-        }
-    });
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                // Check if JWT exists
+                const jwt = localStorage.getItem('jwt');
+                if (!jwt) {
+                    router.push('/login');
+                    return;
+                }
 
-    const recommendedCourses: Course[] = [
-        {
-            title: "Introduction to Python",
-            description: "Learn the basics of Python programming",
-            duration: "4 hours",
-            difficulty: "Beginner"
-        },
-        {
-            title: "Web Development Fundamentals",
-            description: "HTML, CSS, and JavaScript basics",
-            duration: "6 hours",
-            difficulty: "Beginner"
-        },
-        {
-            title: "Data Science Essentials",
-            description: "Introduction to data analysis and visualization",
-            duration: "8 hours",
-            difficulty: "Intermediate"
-        }
-    ];
+                // Fetch user profile
+                const response = await fetch('http://localhost:8080/api/user/profile', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${jwt}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-    const communityActivities: Activity[] = [
-        {
-            user: {
-                name: "Haki",
-                initials: "H",
-                color: "bg-blue-100 dark:bg-blue-900 text-blue-600"
-            },
-            time: "2 hours ago",
-            message: "Just completed the JavaScript course!"
-        },
-        {
-            user: {
-                name: "Haki",
-                initials: "H",
-                color: "bg-green-100 dark:bg-green-900 text-green-600"
-            },
-            time: "5 hours ago",
-            message: "Started learning React today. Excited!"
-        }
-    ];
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        // Invalid or expired token
+                        localStorage.removeItem('jwt');
+                        router.push('/login');
+                        return;
+                    }
+                    throw new Error('Failed to fetch user data');
+                }
+
+                const data = await response.json();
+                if (data.success) {
+                    setUserData(data.data);
+                } else {
+                    throw new Error('Failed to load user data');
+                }
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'An error occurred');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, [router]);
 
     useEffect(() => {
         const swipeShown = localStorage.getItem('swipeNotificationShown');
@@ -128,6 +122,87 @@ export default function ByteCampDashboard() {
             setIsSidebarOpen(true);
         }
     };
+
+    const recommendedCourses: Course[] = [
+        {
+            title: "Introduction to Python",
+            description: "Learn the basics of Python programming",
+            duration: "4 hours",
+            difficulty: "Beginner"
+        },
+        {
+            title: "Web Development Fundamentals",
+            description: "HTML, CSS, and JavaScript basics",
+            duration: "6 hours",
+            difficulty: "Beginner"
+        },
+        {
+            title: "Data Science Essentials",
+            description: "Introduction to data analysis and visualization",
+            duration: "8 hours",
+            difficulty: "Intermediate"
+        }
+    ];
+
+    const communityActivities: Activity[] = [
+        {
+            user: {
+                name: userData?.username || "User",
+                initials: userData?.username?.charAt(0).toUpperCase() || "U",
+                color: "bg-blue-100 dark:bg-blue-900 text-blue-600"
+            },
+            time: "2 hours ago",
+            message: "Just completed the JavaScript course!"
+        },
+        {
+            user: {
+                name: userData?.username || "User",
+                initials: userData?.username?.charAt(0).toUpperCase() || "U",
+                color: "bg-green-100 dark:bg-green-900 text-green-600"
+            },
+            time: "5 hours ago",
+            message: "Started learning React today. Excited!"
+        }
+    ];
+
+    // Calculate stats based on user data
+    const stats = {
+        activeCourses: userData?.courses?.length || 0,
+        completedCourses: 0, // You can add logic to differentiate completed courses
+        learningHours: Math.floor((userData?.expoints || 0) / 10), // Example calculation
+        monthlyGoal: Math.min(((userData?.expoints || 0) / 1000) * 100, 100) // Example: goal is 1000 points
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-red-600 mb-4">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (!userData) {
+        return null;
+    }
 
     return (
         <div
@@ -160,12 +235,20 @@ export default function ByteCampDashboard() {
                 {/* User Info */}
                 <div className="p-4 border-b border-gray-200 dark:border-gray-800">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 flex items-center justify-center font-semibold">
-                            <User size={20} />
-                        </div>
+                        {userData.avatar ? (
+                            <img
+                                src={userData.avatar}
+                                alt={userData.username}
+                                className="w-10 h-10 rounded-full object-cover"
+                            />
+                        ) : (
+                            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 flex items-center justify-center font-semibold">
+                                {userData.username.charAt(0).toUpperCase()}
+                            </div>
+                        )}
                         <div>
-                            <p className="text-sm font-semibold">{guestData.name}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">{guestData.role}</p>
+                            <p className="text-sm font-semibold">{userData.username}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{userData.rank}</p>
                         </div>
                     </div>
                 </div>
@@ -202,10 +285,10 @@ export default function ByteCampDashboard() {
                 <div className="absolute bottom-0 w-full p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
                     <div className="flex justify-between text-sm mb-3">
                         <span className="text-gray-500 dark:text-gray-400">Monthly Goal</span>
-                        <span className="font-semibold">{guestData.stats.monthlyGoal}%</span>
+                        <span className="font-semibold">{Math.round(stats.monthlyGoal)}%</span>
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                        <div className="bg-blue-600 h-full rounded-full transition-all duration-500" style={{ width: `${guestData.stats.monthlyGoal}%` }}></div>
+                        <div className="bg-blue-600 h-full rounded-full transition-all duration-500" style={{ width: `${stats.monthlyGoal}%` }}></div>
                     </div>
                 </div>
             </aside>
@@ -216,7 +299,7 @@ export default function ByteCampDashboard() {
                 <header className="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
                         <div>
-                            <h1 className="text-2xl font-bold">Welcome, {guestData.name}!</h1>
+                            <h1 className="text-2xl font-bold">Welcome, {userData.username}!</h1>
                             <p className="text-sm text-gray-500 dark:text-gray-400">Start your coding journey today</p>
                         </div>
                         <div className="flex items-center gap-4">
@@ -229,9 +312,19 @@ export default function ByteCampDashboard() {
                             <div className="relative">
                                 <button
                                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                                    className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 flex items-center justify-center font-semibold hover:ring-2 hover:ring-blue-600 transition-all"
+                                    className="w-10 h-10 rounded-full overflow-hidden hover:ring-2 hover:ring-blue-600 transition-all"
                                 >
-                                    <User size={20} />
+                                    {userData.avatar ? (
+                                        <img
+                                            src={userData.avatar}
+                                            alt={userData.username}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-blue-100 dark:bg-blue-900 text-blue-600 flex items-center justify-center font-semibold">
+                                            {userData.username.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
                                 </button>
                                 {isUserMenuOpen && (
                                     <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2 z-50">
@@ -244,9 +337,15 @@ export default function ByteCampDashboard() {
                                             <span>Settings</span>
                                         </a>
                                         <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
-                                        <a href="#" className="flex items-center gap-3 px-4 py-2 text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                            <span>Sign In</span>
-                                        </a>
+                                        <button
+                                            onClick={() => {
+                                                localStorage.removeItem('jwt');
+                                                window.location.href = '/login';
+                                            }}
+                                            className="w-full text-left flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                        >
+                                            <span>Sign Out</span>
+                                        </button>
                                     </div>
                                 )}
                             </div>
@@ -265,7 +364,7 @@ export default function ByteCampDashboard() {
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500 dark:text-gray-400">Active Courses</p>
-                                    <p className="text-2xl font-bold">{guestData.stats.activeCourses}</p>
+                                    <p className="text-2xl font-bold">{stats.activeCourses}</p>
                                 </div>
                             </div>
                         </div>
@@ -276,8 +375,8 @@ export default function ByteCampDashboard() {
                                     <CheckCircle size={24} />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Completed</p>
-                                    <p className="text-2xl font-bold">{guestData.stats.completedCourses}</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Level</p>
+                                    <p className="text-2xl font-bold">{userData.level}</p>
                                 </div>
                             </div>
                         </div>
@@ -288,8 +387,8 @@ export default function ByteCampDashboard() {
                                     <Clock size={24} />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Learning Hours</p>
-                                    <p className="text-2xl font-bold">{guestData.stats.learningHours}</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Experience Points</p>
+                                    <p className="text-2xl font-bold">{userData.expoints}</p>
                                 </div>
                             </div>
                         </div>
@@ -297,11 +396,11 @@ export default function ByteCampDashboard() {
                         <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900 text-orange-600 flex items-center justify-center text-lg">
-                                    <Flame size={24} />
+                                    <Users size={24} />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Current Streak</p>
-                                    <p className="text-2xl font-bold">{guestData.streak} days</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Followers</p>
+                                    <p className="text-2xl font-bold">{userData.followers?.length || 0}</p>
                                 </div>
                             </div>
                         </div>
@@ -319,8 +418,15 @@ export default function ByteCampDashboard() {
                                 </div>
                                 <div className="p-8 text-center">
                                     <BookOpen className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                                    <h3 className="mt-4 text-lg font-semibold">No active courses</h3>
-                                    <p className="mt-2 text-gray-500 dark:text-gray-400">Start your first course to begin your coding journey</p>
+                                    <h3 className="mt-4 text-lg font-semibold">
+                                        {stats.activeCourses === 0 ? 'No active courses' : `${stats.activeCourses} Active Courses`}
+                                    </h3>
+                                    <p className="mt-2 text-gray-500 dark:text-gray-400">
+                                        {stats.activeCourses === 0
+                                            ? 'Start your first course to begin your coding journey'
+                                            : 'Keep learning and growing your skills'
+                                        }
+                                    </p>
                                     <a href="#" className="mt-4 inline-block bg-blue-600 text-white py-2 px-6 rounded-lg hover:shadow-lg hover:shadow-blue-600/20 transition-all">
                                         Explore Courses
                                     </a>
@@ -368,23 +474,41 @@ export default function ByteCampDashboard() {
                             <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-lg transition-all duration-300">
                                 <div className="p-6">
                                     <div className="flex flex-col items-center text-center">
-                                        <div className="w-24 h-24 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 flex items-center justify-center text-3xl font-bold">
-                                            <User size={40} />
-                                        </div>
-                                        <h2 className="mt-4 text-xl font-bold">{guestData.name}</h2>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">{guestData.role} at ByteCamp</p>
+                                        {userData.avatar ? (
+                                            <img
+                                                src={userData.avatar}
+                                                alt={userData.username}
+                                                className="w-24 h-24 rounded-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-24 h-24 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 flex items-center justify-center text-3xl font-bold">
+                                                {userData.username.charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                        <h2 className="mt-4 text-xl font-bold">{userData.username}</h2>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">{userData.email}</p>
                                         <div className="mt-6 grid grid-cols-2 gap-4 w-full">
                                             <div>
-                                                <p className="text-sm text-gray-500 dark:text-gray-400">Learning Level</p>
-                                                <p className="text-lg font-semibold">{guestData.learningLevel}</p>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">Rank</p>
+                                                <p className="text-lg font-semibold capitalize">{userData.rank}</p>
                                             </div>
                                             <div>
                                                 <p className="text-sm text-gray-500 dark:text-gray-400">Points</p>
-                                                <p className="text-lg font-semibold">{guestData.points.toLocaleString()}</p>
+                                                <p className="text-lg font-semibold">{userData.expoints.toLocaleString()}</p>
+                                            </div>
+                                        </div>
+                                        <div className="mt-4 grid grid-cols-2 gap-4 w-full">
+                                            <div>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">Followers</p>
+                                                <p className="text-lg font-semibold">{userData.followers?.length || 0}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">Following</p>
+                                                <p className="text-lg font-semibold">{userData.following?.length || 0}</p>
                                             </div>
                                         </div>
                                         <a href="#" className="mt-6 w-full bg-blue-600 text-white py-2 rounded-lg hover:shadow-lg hover:shadow-blue-600/20 transition-all font-medium">
-                                            Complete Your Profile
+                                            View Full Profile
                                         </a>
                                     </div>
                                 </div>

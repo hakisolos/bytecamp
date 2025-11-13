@@ -92,7 +92,7 @@ function LandingPage() {
             Contact
           </a>
           <a
-            href="/signin"
+            href="/login"
             className="hidden sm:flex px-6 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-blue-600/50 items-center gap-2 group"
           >
             Get Started
@@ -132,7 +132,7 @@ function LandingPage() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <a
-              href="/signin"
+              href="/login"
               className="px-8 py-4 bg-blue-600 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-blue-600/50 font-medium text-lg flex items-center gap-2 group w-full sm:w-auto justify-center"
             >
               Start Learning Free
@@ -198,7 +198,7 @@ function LandingPage() {
               Join thousands of learners who are already coding their dreams into reality.
             </p>
             <a
-              href="/signin"
+              href="/login"
               className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-blue-600/50 font-medium text-lg group"
             >
               Get Started for Free
@@ -246,7 +246,7 @@ function LandingPage() {
             opacity: 0.1;
           }
         }
-
+ 
         .animate-float {
           animation: float 8s ease-in-out infinite;
         }

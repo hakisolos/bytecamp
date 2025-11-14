@@ -53,10 +53,12 @@ export default function ByteCampDashboard() {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                // Check if JWT exists
-                const jwt = localStorage.getItem('jwt');
+                // Check if JWT exists in localStorage OR sessionStorage
+                const jwt = localStorage.getItem('jwt') || sessionStorage.getItem('jwt');
                 if (!jwt) {
-                    router.push('/login');
+                    // Set a flag to prevent login page from redirecting back
+                    sessionStorage.setItem('redirecting', 'true');
+                    router.replace('/login');
                     return;
                 }
 
@@ -73,7 +75,9 @@ export default function ByteCampDashboard() {
                     if (response.status === 401 || response.status === 403) {
                         // Invalid or expired token
                         localStorage.removeItem('jwt');
-                        router.push('/login');
+                        sessionStorage.removeItem('jwt');
+                        sessionStorage.setItem('redirecting', 'true');
+                        router.replace('/login');
                         return;
                     }
                     throw new Error('Failed to fetch user data');
@@ -82,11 +86,14 @@ export default function ByteCampDashboard() {
                 const data = await response.json();
                 if (data.success) {
                     setUserData(data.data);
+                    // Clear the redirecting flag once we successfully load data
+                    sessionStorage.removeItem('redirecting');
                 } else {
                     throw new Error('Failed to load user data');
                 }
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An error occurred');
+                setLoading(false);
             } finally {
                 setLoading(false);
             }

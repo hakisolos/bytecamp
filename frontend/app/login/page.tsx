@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { redirect } from 'next/navigation';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/auth';
 
@@ -24,13 +23,45 @@ export default function SignInPage() {
 
     // Check if user is already logged in
     useEffect(() => {
-        const checkAuth = () => {
-            const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt');
-            if (token) {
-                router.push('/dash');
-            } else {
+        const checkAuth = async () => {
+            // Check if we're being redirected from dashboard (no valid token)
+            const isRedirecting = sessionStorage.getItem('redirecting');
+            if (isRedirecting) {
+                sessionStorage.removeItem('redirecting');
                 setIsCheckingAuth(false);
+                return;
             }
+
+            const token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt');
+
+            if (token) {
+                // Verify the token is valid before redirecting
+                try {
+                    const response = await fetch('http://localhost:8080/api/user/profile', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        // Valid token, redirect to dashboard
+                        router.replace('/dash');
+                        return;
+                    } else {
+                        // Invalid token, clear it
+                        localStorage.removeItem('jwt');
+                        sessionStorage.removeItem('jwt');
+                    }
+                } catch (error) {
+                    // Network error or invalid token
+                    localStorage.removeItem('jwt');
+                    sessionStorage.removeItem('jwt');
+                }
+            }
+
+            setIsCheckingAuth(false);
         };
 
         checkAuth();
@@ -95,7 +126,7 @@ export default function SignInPage() {
             showNotification('Success! You have been signed in.');
 
             setTimeout(() => {
-                router.push('/dash');
+                router.replace('/dash');
             }, 1000);
         } catch (error) {
             console.error('Login error:', error);

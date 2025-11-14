@@ -6,14 +6,12 @@ import user from "./routes/userRoutes";
 import cors from 'cors'
 import cookieParser from "cookie-parser";
 import dotenv from 'dotenv'
+import multer from 'multer'
 dotenv.config()
-
-
 
 
 const app: Application = e()
 const PORT = process.env.PORT || 3001
-
 
 app.use(e.json())
 app.use(cookieParser())

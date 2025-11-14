@@ -1,13 +1,16 @@
 import { Router } from "express";
 import db from "../config/database";
-import auth from "./authRoute";
 import { config } from "dotenv";
 import { verifyToken } from "../middlewares/authMiddleware";
-import { UserReq } from "../types";
-import { addExpoints } from "../utils";
+import { addExpoints, uploadToCdn } from "../utils";
+import multer = require("multer");
 config()
 
 const user = Router()
+
+
+const storage = multer.memoryStorage()
+const upload = multer({ storage })
 
 
 user.get('/', (req, res) => {
@@ -110,4 +113,38 @@ user.get('/followers', async (req: any, res) => {
     }
 });
 
+user.post('/updatePP', verifyToken, async (req: any, res) => {
+    const user = req.user
+    const buff = req.file?.buffer
+    try {
+        if (!buff) {
+            return res.status(400).json({ message: "no file uploaded" })
+        }
+        const ppurl = await uploadToCdn(buff)
+
+        if (ppurl) {
+            await db.query("UPDATE users SET avatar = $1 WHERE email = $2", [ppurl, req.user.email])
+        }
+        return res.status(200)
+    } catch (e) {
+        console.log("an error occured")
+        return res.status(500).json({ err: e })
+    }
+
+
+})
 export default user
+
+
+user.get('/uploadToCdn', upload.single("file"), async (req, res) => {
+    const buff = req.file?.buffer
+    try {
+        if (!buff) {
+            return res.status(400).json({ message: "no file uploaded" })
+        }
+        await uploadToCdn(buff)
+    } catch (e) {
+        console.log("an error occured")
+        return res.status(500).json({ err: e })
+    }
+})

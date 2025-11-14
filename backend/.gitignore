@@ -5,3 +5,4 @@ package-lock.json
 bun.lock
 bytecam.session.sql
 query.sql
+current.session.sql
